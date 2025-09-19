@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mariadb:
     image: mariadb:latest
@@ -28,10 +26,13 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    env_file:
+      - .env.prod
     environment:
-      - APP_ENV=prod
-      - APP_SECRET=${APP_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      OTEL_SERVICE_NAME: crypto-rates-api
     networks:
       - app-network
     depends_on:
@@ -44,11 +45,14 @@ services:
       context: .
       target: prod
     restart: unless-stopped
-    command: php bin/console scheduler:run
+    command: php bin/console messenger:consume scheduler_default
+    env_file:
+      - .env.prod
     environment:
-      - APP_ENV=prod
-      - APP_SECRET=${APP_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
+      APP_ENV: prod
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      OTEL_SERVICE_NAME: crypto-rates-scheduler
     networks:
       - app-network
     depends_on:

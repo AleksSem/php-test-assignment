@@ -5,11 +5,12 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Repository\CryptoRateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: CryptoRateRepository::class)]
 #[ORM\Table(name: 'crypto_rates')]
 #[ORM\Index(name: 'idx_pair_timestamp', columns: ['pair', 'timestamp'])]
 #[ApiResource(
@@ -47,50 +48,50 @@ class CryptoRate
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    final public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getPair(): string
+    final public function getPair(): string
     {
         return $this->pair;
     }
 
-    public function setPair(string $pair): self
+    final public function setPair(string $pair): self
     {
         $this->pair = $pair;
         return $this;
     }
 
-    public function getRate(): string
+    final public function getRate(): string
     {
         return $this->rate;
     }
 
-    public function setRate(string $rate): self
+    final public function setRate(string $rate): self
     {
         $this->rate = $rate;
         return $this;
     }
 
-    public function getTimestamp(): \DateTimeImmutable
+    final public function getTimestamp(): \DateTimeImmutable
     {
         return $this->timestamp;
     }
 
-    public function setTimestamp(\DateTimeImmutable $timestamp): self
+    final public function setTimestamp(\DateTimeImmutable $timestamp): self
     {
         $this->timestamp = $timestamp;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    final public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    final public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;

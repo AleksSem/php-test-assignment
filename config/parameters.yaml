@@ -1,0 +1,31 @@
+parameters:
+    # Application configuration
+    app.name: 'crypto_rates_api'
+
+    # Monitoring configuration
+    app.http_duration_buckets: [ 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0 ]
+    app.sql_duration_buckets: [ 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0 ]
+    app.monitoring_skip_urls: [ '/metrics', '/favicon.ico', '/health', '/status' ]
+
+    # Binance API endpoints
+    app.binance_api_url: 'https://api.binance.com/api/v3/ticker/price'
+    app.binance_klines_url: 'https://api.binance.com/api/v3/klines'
+
+    # Supported cryptocurrency pairs
+    app.supported_pairs:
+        'EUR/BTC': 'BTCEUR'
+        'EUR/ETH': 'ETHEUR'
+        'EUR/LTC': 'LTCEUR'
+
+    # OpenTelemetry configuration
+    otel.service_name: '%env(OTEL_SERVICE_NAME)%'
+    otel.service_version: '%env(OTEL_SERVICE_VERSION)%'
+    otel.exporter_traces_endpoint: '%env(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)%'
+    otel.exporter_metrics_endpoint: '%env(OTEL_EXPORTER_OTLP_METRICS_ENDPOINT)%'
+    app.environment: '%env(APP_ENV)%'
+
+    # Logging configuration
+    graylog.hostname: '%env(GRAYLOG_HOSTNAME)%'
+    graylog.port: '%env(int:GRAYLOG_PORT)%'
+
+

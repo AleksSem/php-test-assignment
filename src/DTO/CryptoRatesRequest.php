@@ -6,9 +6,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class CryptoRatesRequest
 {
+    public const SUPPORTED_PAIRS = ['EUR/BTC', 'EUR/ETH', 'EUR/LTC'];
+
     #[Assert\NotBlank(message: 'Pair parameter is required')]
     #[Assert\Choice(
-        choices: ['EUR/BTC', 'EUR/ETH', 'EUR/LTC'],
+        choices: self::SUPPORTED_PAIRS,
         message: 'Unsupported pair. Supported pairs: EUR/BTC, EUR/ETH, EUR/LTC'
     )]
     public string $pair;
@@ -21,5 +23,15 @@ class CryptoRatesRequest
     {
         $this->pair = $pair;
         $this->date = $date;
+    }
+
+    public function getPair(): string
+    {
+        return $this->pair;
+    }
+
+    public function getDate(): ?string
+    {
+        return $this->date;
     }
 }

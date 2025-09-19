@@ -1,20 +1,54 @@
-# This file is the entry point to configure your own services.
+# Service configuration for Crypto Rates API
 # Files in the packages/ subdirectory configure your dependencies.
 
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
-parameters:
+imports:
+    - { resource: parameters.yaml }
 
 services:
-    # default configuration for services in *this* file
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autowire: true
+        autoconfigure: true
+        bind:
+            # Application parameters
+            $appName: '%app.name%'
+            $httpDurationBuckets: '%app.http_duration_buckets%'
+            $sqlDurationBuckets: '%app.sql_duration_buckets%'
+            $binanceApiUrl: '%app.binance_api_url%'
+            $binanceKlinesUrl: '%app.binance_klines_url%'
+            $supportedPairs: '%app.supported_pairs%'
+            $monitoringSkipUrls: '%app.monitoring_skip_urls%'
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
+    # Auto-register services from src/ directory
     App\:
         resource: '../src/'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    App\Service\BinanceApiClientService:
+        arguments:
+            $httpClient: '@App\Service\TracingHttpClient'
+
+    App\Service\TracingHttpClient:
+        arguments:
+            $httpClient: '@http_client'
+
+    App\Service\OpenTelemetryService:
+        arguments:
+            $serviceName: '%otel.service_name%'
+            $serviceVersion: '%otel.service_version%'
+            $tracesEndpoint: '%otel.exporter_traces_endpoint%'
+            $metricsEndpoint: '%otel.exporter_metrics_endpoint%'
+            $environment: '%app.environment%'
+
+    App\Tracing\SqlTracingMiddleware:
+        tags:
+            - { name: 'doctrine.middleware' }
+
+    App\Metrics\SqlMetricsMiddleware:
+        tags:
+            - { name: 'doctrine.middleware' }
+
+    App\Log\GelfProcessor:
+        arguments:
+            $serviceName: '%otel.service_name%'
+            $environment: '%app.environment%'
+        tags:
+            - { name: monolog.processor }

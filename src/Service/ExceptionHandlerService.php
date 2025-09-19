@@ -30,7 +30,7 @@ class ExceptionHandlerService
         ], Response::HTTP_BAD_REQUEST);
     }
 
-    public function handleApiException(\Exception $e, string $context = ''): JsonResponse
+    public function handleApiException(\Throwable $e, string $context = ''): JsonResponse
     {
         $this->logger->error('API Exception in {context}: {message}', [
             'context' => $context,
@@ -44,7 +44,7 @@ class ExceptionHandlerService
         ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    public function handleBinanceApiException(\Exception $e): JsonResponse
+    public function handleBinanceApiException(\Throwable $e): JsonResponse
     {
         $this->logger->error('Binance API Exception: {message}', [
             'message' => $e->getMessage(),

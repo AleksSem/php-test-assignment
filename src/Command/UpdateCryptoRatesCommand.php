@@ -31,7 +31,7 @@ class UpdateCryptoRatesCommand extends Command
             $this->binanceApiService->updateRates();
             $io->success('Cryptocurrency rates updated successfully!');
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $io->error('Failed to update cryptocurrency rates: ' . $e->getMessage());
             return Command::FAILURE;
         }

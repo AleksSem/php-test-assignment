@@ -3,6 +3,7 @@
         worker {
             file ./public/index.php
             num 1
+            watch
         }
     }
     auto_https off
@@ -14,7 +15,6 @@ localhost:80 {
     log
     encode gzip
     php_server
-    file_server
 
     # Hot reload for development
     header {

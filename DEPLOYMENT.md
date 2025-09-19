@@ -1,31 +1,25 @@
 # Deployment Instructions
 
-## Quick Start
+## Development Quick Start
 
 ### 1. Clone and Start
 
 ```bash
 git clone <repository-url>
 cd paybis
-docker-compose up -d
+docker compose up -d
 ```
 
-### 2. Run Migrations
+That's it! The development environment automatically:
+- Creates database if it doesn't exist
+- Runs migrations
+- Starts the API server with hot reload
+- Starts the scheduler service
+
+### 2. Optional: Manual Rate Update
 
 ```bash
-docker-compose exec api php bin/console doctrine:migrations:migrate
-```
-
-### 3. Initial Rate Update
-
-```bash
-docker-compose exec api php bin/console app:update-crypto-rates
-```
-
-### 4. Start Scheduler (in separate terminal)
-
-```bash
-docker-compose exec api php bin/console scheduler:run
+docker compose exec api php bin/console app:update-crypto-rates
 ```
 
 ## Health Check
@@ -33,14 +27,15 @@ docker-compose exec api php bin/console scheduler:run
 ### API Endpoint Testing
 
 ```bash
-# Check supported pairs
-curl "http://localhost/api/rates/supported-pairs"
-
 # Check rates for 24 hours
 curl "http://localhost/api/rates/last-24h?pair=EUR/BTC"
 
 # Check rates for a day
 curl "http://localhost/api/rates/day?pair=EUR/BTC&date=$(date +%Y-%m-%d)"
+
+# Expected response formats:
+# Last 24h: {"pair":"EUR/BTC","data":[...],"count":288}
+# Day rates: {"pair":"EUR/BTC","date":"2024-12-01","data":[...],"count":288}
 ```
 
 ### Log Checking
@@ -178,7 +173,7 @@ docker-compose exec api php bin/console doctrine:database:create --if-not-exists
 docker-compose logs api
 
 # Check API availability
-curl -I http://localhost/api/rates/supported-pairs
+curl -I http://localhost/api/rates/last-24h?pair=EUR/BTC
 ```
 
 ### Scheduler Issues

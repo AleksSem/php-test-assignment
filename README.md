@@ -38,7 +38,7 @@ cd paybis
 
 2. **Start the application:**
 ```bash
-docker-compose up -d
+docker compose --env-file .env.dev up -d
 ```
 
 3. **Run migrations:**
@@ -92,18 +92,19 @@ curl "http://localhost/api/rates/last-24h?pair=EUR/BTC"
 ```json
 {
   "pair": "EUR/BTC",
-  "data": [
-    {
-      "timestamp": "2024-12-01 10:00:00",
-      "rate": "0.00002345",
-      "pair": "EUR/BTC"
-    },
-    {
-      "timestamp": "2024-12-01 10:05:00",
-      "rate": "0.00002350",
-      "pair": "EUR/BTC"
-    }
-  ],
+  "chart": {
+    "labels": ["Sep-21 12:22", "Sep-21 12:37", "Sep-21 12:38"],
+    "datasets": [
+      {
+        "label": "Exchange Rate",
+        "data": [98639.69, 98654.08, 98654.10],
+        "borderColor": "#007bff",
+        "backgroundColor": "rgba(0, 123, 255, 0.1)",
+        "fill": true,
+        "tension": 0.1
+      }
+    ]
+  },
   "count": 288
 }
 ```
@@ -126,35 +127,20 @@ curl "http://localhost/api/rates/day?pair=EUR/BTC&date=2024-12-01"
 {
   "pair": "EUR/BTC",
   "date": "2024-12-01",
-  "data": [
-    {
-      "timestamp": "2024-12-01 00:00:00",
-      "rate": "0.00002340",
-      "pair": "EUR/BTC"
-    },
-    {
-      "timestamp": "2024-12-01 00:05:00",
-      "rate": "0.00002345",
-      "pair": "EUR/BTC"
-    }
-  ],
+  "chart": {
+    "labels": ["12:22", "12:37", "12:38"],
+    "datasets": [
+      {
+        "label": "Exchange Rate",
+        "data": [98639.69, 98654.08, 98654.10],
+        "borderColor": "#007bff",
+        "backgroundColor": "rgba(0, 123, 255, 0.1)",
+        "fill": true,
+        "tension": 0.1
+      }
+    ]
+  },
   "count": 288
-}
-```
-
-### 3. Supported currency pairs
-
-**GET** `/api/rates/supported-pairs`
-
-**Example request:**
-```bash
-curl "http://localhost/api/rates/supported-pairs"
-```
-
-**Example response:**
-```json
-{
-  "supported_pairs": ["EUR/BTC", "EUR/ETH", "EUR/LTC"]
 }
 ```
 
@@ -203,18 +189,36 @@ src/
 
 ## Configuration
 
-### Environment Variables
+### Environment Files
 
+**Development (`.env.dev`):**
 ```env
-# Main settings
-APP_ENV=dev
-APP_SECRET=your-secret-key
+# Database Configuration
+DATABASE_SERVER_VERSION=mariadb-10.11.2
+DATABASE_DRIVER=pdo_mysql
+DATABASE_HOST=mariadb
+DATABASE_PORT=3306
+DATABASE_NAME=crypto
+DATABASE_USER=db_user_123
+DATABASE_PASSWORD=db_pass_123
 
-# Database
-DATABASE_URL="mysql://user:password@host:port/database?serverVersion=8.0&charset=utf8mb4"
+# Application
+APP_SECRET=dev-secret-key-change-in-production
 
-# CORS (for development)
-CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+# OpenTelemetry
+OTEL_SERVICE_VERSION=1.0.0
+OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://jaeger:4318/v1/metrics
+```
+
+**Production (`.env.prod`):**
+```env
+# OpenTelemetry (production defaults)
+OTEL_SERVICE_VERSION=1.0.0
+OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://jaeger:4318/v1/metrics
 ```
 
 ### Scheduler Configuration
@@ -247,12 +251,12 @@ MARIADB_PASSWORD=secure-password
 
 2. **Start production:**
 ```bash
-docker-compose -f docker-compose.prod.yaml up -d
+docker compose -f compose.prod.yaml --env-file .env.prod up -d
 ```
 
 3. **Run migrations:**
 ```bash
-docker-compose -f docker-compose.prod.yaml exec api php bin/console doctrine:migrations:migrate --no-interaction
+docker compose -f compose.prod.yaml exec api php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
 ### Monitoring
