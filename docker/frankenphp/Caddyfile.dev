@@ -1,0 +1,25 @@
+{
+    frankenphp {
+        worker {
+            file ./public/index.php
+            num 1
+        }
+    }
+    auto_https off
+    debug
+}
+
+localhost:80 {
+    root * /app/public
+    log
+    encode gzip
+    php_server
+    file_server
+
+    # Hot reload for development
+    header {
+        Cache-Control "no-cache, no-store, must-revalidate"
+        Pragma "no-cache"
+        Expires "0"
+    }
+}

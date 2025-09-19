@@ -1,0 +1,214 @@
+# Configuration file for FrankenPHP
+# This file defines specific settings for FrankenPHP runtime
+
+# Main FrankenPHP settings
+frankenphp:
+  # Working mode: worker, standard
+  # worker - loads application once and reuses (recommended for production)
+  # standard - each request creates new process (better for development)
+  mode: worker
+
+  # Worker settings
+  worker:
+    # Worker file - application entry point
+    file: ./public/index.php
+
+    # Number of workers (recommended = number of CPU cores)
+    # Leave empty for automatic detection
+    count: 1
+
+    # Maximum requests per worker before restart
+    # Helps avoid memory leaks
+    max_requests: 1000
+
+    # Request timeout in seconds
+    request_timeout: 30
+
+    # Restart worker on file changes (development only)
+    watch: true
+
+    # Directories to watch for changes
+    watch_directories:
+      - ./src
+      - ./config
+      - ./templates
+      - ./public
+
+    # Watch exceptions
+    watch_ignore:
+      - "./var/*"
+      - "./vendor/*"
+      - "*.log"
+
+# HTTP server settings
+server:
+  # Listen address
+  listen: ":80"
+
+  # Root directory
+  root: ./public
+
+  # Index files
+  index:
+    - index.php
+    - index.html
+
+  # Maximum request body size
+  max_request_body: 10MB
+
+  # Timeouts
+  timeouts:
+    read: 30s
+    write: 30s
+    idle: 120s
+
+# Logging settings
+logging:
+  # Logging level: debug, info, warn, error
+  level: info
+  # Log format: json, console
+  format: console
+  # Log file (empty = stdout)
+  file: ""
+  # Log rotation
+  rotation:
+    max_size: 100MB
+    max_files: 5
+    max_age: 30 # days
+
+# Performance settings
+performance:
+  # Enable gzip compression
+  gzip: true
+  # Compression level (1-9)
+  gzip_level: 6
+  # Minimum size for compression
+  gzip_min_length: 1024
+  # Static file caching
+  static_cache:
+    enabled: true
+    max_age: 31536000 # 1 year in seconds
+  # Memory settings
+  memory:
+    # Soft memory limit for worker
+    soft_limit: 128MB
+    # Hard memory limit for worker
+    hard_limit: 256MB
+# Security settings
+security:
+  # Hide Server header
+  hide_server_header: true
+  # Security headers
+  headers:
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: DENY
+    X-XSS-Protection: "1; mode=block"
+    Referrer-Policy: "strict-origin-when-cross-origin"
+
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst: 10
+
+  # CORS settings
+  cors:
+    enabled: true
+    allowed_origins:
+      - "http://localhost"
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+    max_age: 86400
+
+# Monitoring settings
+monitoring:
+  # Enable metrics
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+
+  # Health check
+  health:
+    enabled: true
+    endpoint: "/health"
+
+  # Profiling (development only)
+  profiling:
+    enabled: false
+    endpoint: "/debug/pprof"
+
+# Development settings
+development:
+  # Enable debug mode
+  debug: true
+  # Auto reload on file changes
+  hot_reload: true
+  # Detailed errors
+  detailed_errors: true
+  # Disable caching for development
+  disable_cache: true
+
+# Production settings
+production:
+  # Disable debug mode
+  debug: false
+  # Optimizations
+  optimizations:
+    # Precompile templates
+    precompile_templates: true
+    # Optimize autoloader
+    optimize_autoloader: true
+    # Cache configuration
+    cache_config: true
+    # Enable OPcache
+    opcache:
+      enabled: true
+      memory_consumption: 256
+      max_accelerated_files: 20000
+      validate_timestamps: false
+
+# PHP environment variables
+php:
+  # Memory limit
+  memory_limit: 256M
+  # Maximum execution time
+  max_execution_time: 30
+  # POST data size
+  post_max_size: 10M
+  # Upload file size
+  upload_max_filesize: 10M
+  # Timezone
+  date_timezone: "UTC"
+  # Session settings
+  session:
+    save_handler: files
+    save_path: "/tmp"
+    gc_maxlifetime: 1440
+
+  # Error settings
+  error_reporting: "E_ALL & ~E_DEPRECATED & ~E_STRICT"
+  display_errors: false
+  log_errors: true
+  error_log: "/var/log/php_errors.log"
+
+# Custom FrankenPHP directives
+directives:
+  # Additional Caddy settings
+  caddy_directives:
+    - "encode gzip"
+    - "header /-"
+
+  # Middleware
+  middleware:
+    - "log"
+    - "encode"
+    - "security_headers"
+    - "rate_limit"

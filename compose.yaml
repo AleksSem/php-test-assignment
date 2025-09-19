@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      dockerfile: docker/frankenphp/Dockerfile
+      context: .
+      target: dev
+    restart: on-failure
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - .:/app
+    environment:
+      - APP_ENV=dev
+      - CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+      - APP_SECRET=
+      - DATABASE_URL="mysql://db_user_123:db_pass_123@mariadb:3306/crypto?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
+    networks:
+      - app-network
+
+  mariadb:
+    image: mariadb:latest
+    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: crypto
+      MARIADB_USER: db_user_123
+      MARIADB_PASSWORD: db_pass_123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/sql:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
