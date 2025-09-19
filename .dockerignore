@@ -1,0 +1,50 @@
+# Docker files
+docker/
+
+# Development files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+DEPLOYMENT.md
+examples/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+var/cache/
+var/log/
+
+# Data directories
+data/
+
+# Tests
+tests/
+phpunit.xml
+
+# Composer dev dependencies
+vendor/bin/
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

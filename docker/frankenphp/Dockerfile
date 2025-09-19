@@ -70,6 +70,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Copy source code
 COPY . .
 
+# Copy production Caddyfile
+COPY docker/frankenphp/Caddyfile.prod /etc/caddy/Caddyfile
+
 # Execute production build tasks
 RUN composer dump-autoload --optimize --no-dev \
     && php bin/console cache:clear --env=prod \

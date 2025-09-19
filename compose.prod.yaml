@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api:
+    build:
+      dockerfile: docker/frankenphp/Dockerfile
+      context: .
+      target: prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - app-network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      dockerfile: docker/frankenphp/Dockerfile
+      context: .
+      target: prod
+    restart: unless-stopped
+    command: php bin/console scheduler:run
+    environment:
+      - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - app-network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/mariadb
+
+networks:
+  app-network:
+    driver: bridge

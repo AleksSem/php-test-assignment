@@ -1,0 +1,25 @@
+<?php
+
+namespace App\DTO;
+
+use Symfony\Component\Validator\Constraints as Assert;
+
+class CryptoRatesRequest
+{
+    #[Assert\NotBlank(message: 'Pair parameter is required')]
+    #[Assert\Choice(
+        choices: ['EUR/BTC', 'EUR/ETH', 'EUR/LTC'],
+        message: 'Unsupported pair. Supported pairs: EUR/BTC, EUR/ETH, EUR/LTC'
+    )]
+    public string $pair;
+
+    #[Assert\NotBlank(message: 'Date parameter is required')]
+    #[Assert\Date(message: 'Invalid date format. Use YYYY-MM-DD format')]
+    public ?string $date = null;
+
+    public function __construct(string $pair, ?string $date = null)
+    {
+        $this->pair = $pair;
+        $this->date = $date;
+    }
+}
