@@ -1,5 +1,9 @@
 FROM dunglas/frankenphp:php8.3-alpine as base
 
+# Accept version as build argument
+ARG APP_VERSION=1.0.0
+ENV APP_VERSION=${APP_VERSION}
+
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
 ENV APP_RUNTIME=Runtime\\FrankenPhpSymfony\\Runtime
 

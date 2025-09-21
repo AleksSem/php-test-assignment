@@ -19,7 +19,9 @@ class CryptoRatesController extends AbstractController
     public function __construct(
         private BinanceApiService $binanceApiService,
         private ValidatorInterface $validator,
-        private ExceptionHandlerService $exceptionHandler
+        private ExceptionHandlerService $exceptionHandler,
+        private string $chartBorderColor,
+        private string $chartBackgroundColor
     ) {
     }
 
@@ -107,8 +109,8 @@ class CryptoRatesController extends AbstractController
                 [
                     'label' => 'Exchange Rate',
                     'data' => $values,
-                    'borderColor' => '#007bff',
-                    'backgroundColor' => 'rgba(0, 123, 255, 0.1)',
+                    'borderColor' => $this->chartBorderColor,
+                    'backgroundColor' => $this->chartBackgroundColor,
                     'fill' => true,
                     'tension' => 0.1
                 ]

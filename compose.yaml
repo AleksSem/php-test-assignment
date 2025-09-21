@@ -36,10 +36,6 @@ services:
       - .:/app
     env_file:
       - .env.dev
-    environment:
-      APP_ENV: dev
-      CORS_ALLOW_ORIGIN: '^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
-      OTEL_SERVICE_NAME: crypto-rates-api
     networks:
       - app-network
     depends_on:
@@ -65,7 +61,6 @@ services:
     env_file:
       - .env.dev
     environment:
-      APP_ENV: dev
       OTEL_SERVICE_NAME: crypto-rates-scheduler
     networks:
       - app-network

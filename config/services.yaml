@@ -2,6 +2,7 @@
 # Files in the packages/ subdirectory configure your dependencies.
 
 imports:
+    - { resource: default_env.yaml }
     - { resource: parameters.yaml }
 
 services:
@@ -11,12 +12,18 @@ services:
         bind:
             # Application parameters
             $appName: '%app.name%'
+            $appVersion: '%app.version%'
             $httpDurationBuckets: '%app.http_duration_buckets%'
             $sqlDurationBuckets: '%app.sql_duration_buckets%'
             $binanceApiUrl: '%app.binance_api_url%'
             $binanceKlinesUrl: '%app.binance_klines_url%'
             $supportedPairs: '%app.supported_pairs%'
             $monitoringSkipUrls: '%app.monitoring_skip_urls%'
+            $binanceApiTimeout: '%app.binance_api_timeout%'
+            $binanceKlinesTimeout: '%app.binance_klines_timeout%'
+            $binanceKlinesLimit: '%app.binance_klines_limit%'
+            $chartBorderColor: '%app.chart_border_color%'
+            $chartBackgroundColor: '%app.chart_background_color%'
 
     # Auto-register services from src/ directory
     App\:
@@ -52,3 +59,10 @@ services:
             $environment: '%app.environment%'
         tags:
             - { name: monolog.processor }
+
+    # Prometheus Configuration
+    Prometheus\Storage\InMemory:
+
+    Prometheus\CollectorRegistry:
+        arguments:
+            - '@Prometheus\Storage\InMemory'

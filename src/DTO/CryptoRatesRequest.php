@@ -4,7 +4,7 @@ namespace App\DTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class CryptoRatesRequest
+readonly class CryptoRatesRequest
 {
     public const SUPPORTED_PAIRS = ['EUR/BTC', 'EUR/ETH', 'EUR/LTC'];
 
@@ -17,7 +17,7 @@ class CryptoRatesRequest
 
     #[Assert\NotBlank(message: 'Date parameter is required')]
     #[Assert\Date(message: 'Invalid date format. Use YYYY-MM-DD format')]
-    public ?string $date = null;
+    public ?string $date;
 
     public function __construct(string $pair, ?string $date = null)
     {

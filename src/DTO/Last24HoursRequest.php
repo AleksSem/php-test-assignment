@@ -4,7 +4,7 @@ namespace App\DTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class Last24HoursRequest
+readonly class Last24HoursRequest
 {
     #[Assert\NotBlank(message: 'Pair parameter is required')]
     #[Assert\Choice(

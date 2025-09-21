@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
-class ExceptionHandlerService
+final readonly class ExceptionHandlerService
 {
     public function __construct(
         private LoggerInterface $logger

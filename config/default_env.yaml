@@ -1,0 +1,16 @@
+parameters:
+  # Application defaults
+  env(APP_VERSION): '1.0.0'
+  # API configuration defaults
+  env(BINANCE_API_TIMEOUT): 10
+  env(BINANCE_KLINES_TIMEOUT): 30
+  env(BINANCE_KLINES_LIMIT): 1000
+
+  # CORS configuration defaults
+  env(CORS_ALLOW_ORIGIN): '^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+
+  # Chart configuration defaults
+  env(CHART_BORDER_COLOR): "#007bff"
+  env(CHART_BACKGROUND_COLOR): "rgba(0, 123, 255, 0.1)"
+
+  env(GRAYLOG_PORT): 12201

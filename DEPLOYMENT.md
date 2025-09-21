@@ -1,233 +1,188 @@
-# Deployment Instructions
+# Production Deployment Guide
 
-## Development Quick Start
+Guide for deploying the Crypto Rates API to production environments.
 
-### 1. Clone and Start
+## 🔧 Configuration
 
-```bash
-git clone <repository-url>
-cd paybis
-docker compose up -d
-```
+### Environment Variables Setup
 
-That's it! The development environment automatically:
-- Creates database if it doesn't exist
-- Runs migrations
-- Starts the API server with hot reload
-- Starts the scheduler service
-
-### 2. Optional: Manual Rate Update
+Edit the `.env.prod` file:
 
 ```bash
-docker compose exec api php bin/console app:update-crypto-rates
-```
-
-## Health Check
-
-### API Endpoint Testing
-
-```bash
-# Check rates for 24 hours
-curl "http://localhost/api/rates/last-24h?pair=EUR/BTC"
-
-# Check rates for a day
-curl "http://localhost/api/rates/day?pair=EUR/BTC&date=$(date +%Y-%m-%d)"
-
-# Expected response formats:
-# Last 24h: {"pair":"EUR/BTC","data":[...],"count":288}
-# Day rates: {"pair":"EUR/BTC","date":"2024-12-01","data":[...],"count":288}
-```
-
-### Log Checking
-
-```bash
-# Application logs
-docker-compose logs -f api
-
-# Database logs
-docker-compose logs -f mariadb
-```
-
-## Production Deployment
-
-### 1. Environment Preparation
-
-Create `.env` file with production settings:
-
-```env
+# Application
 APP_ENV=prod
-APP_SECRET=your-very-secure-secret-key
-DATABASE_URL="mysql://user:password@host:port/database?serverVersion=8.0&charset=utf8mb4"
-MARIADB_ROOT_PASSWORD=secure-root-password
-MARIADB_DATABASE=crypto
-MARIADB_USER=crypto_user
-MARIADB_PASSWORD=secure-password
+APP_SECRET=your-secure-secret-key-change-me-please
+
+# Database
+DATABASE_HOST=your-database-host
+DATABASE_PORT=3306
+DATABASE_NAME=crypto_rates
+DATABASE_USER=crypto_user
+DATABASE_PASSWORD=secure_password
+DATABASE_SERVER_VERSION=mariadb-10.11.2
+DATABASE_DRIVER=pdo_mysql
+
+# Security
+CORS_ALLOW_ORIGIN=^https?://(yourdomain\.com|api\.yourdomain\.com)(:[0-9]+)?$
+
+# Binance API
+BINANCE_API_TIMEOUT=30
+BINANCE_KLINES_TIMEOUT=60
+BINANCE_KLINES_LIMIT=1000
+
+# Monitoring
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://jaeger:4318/v1/metrics
+
+# Logging
+GRAYLOG_HOSTNAME=logstash
+GRAYLOG_PORT=12201
+
+# Chart Settings
+CHART_BORDER_COLOR="rgba(75,192,192,1)"
+CHART_BACKGROUND_COLOR="rgba(75,192,192,0.2)"
 ```
 
-### 2. Start Production
+### Database Setup
+
+#### Option 1: External Database (Recommended)
+Use a managed database service (AWS RDS, Google Cloud SQL, etc.):
 
 ```bash
-docker-compose -f docker-compose.prod.yaml up -d
+DATABASE_HOST=your-db-cluster.region.rds.amazonaws.com
+DATABASE_USER=crypto_admin
+DATABASE_PASSWORD=secure_password
+DATABASE_NAME=crypto_rates
 ```
 
-### 3. Run Migrations
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec api php bin/console doctrine:migrations:migrate --no-interaction
-```
-
-### 4. Start Scheduler
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec scheduler php bin/console scheduler:run
-```
-
-## Monitoring
-
-### Container Status Check
-
-```bash
-docker-compose ps
-```
-
-### Resource Monitoring
-
-```bash
-docker stats
-```
-
-### Log Checking
-
-```bash
-# All services
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f api
-docker-compose logs -f mariadb
-docker-compose logs -f scheduler
-```
-
-## Backup
-
-### Database Backup Creation
-
-```bash
-docker-compose exec mariadb mysqldump -u root -p crypto > backup_$(date +%Y%m%d_%H%M%S).sql
-```
-
-### Restore from Backup
-
-```bash
-docker-compose exec -T mariadb mysql -u root -p crypto < backup_file.sql
-```
-
-## Application Update
-
-### 1. Stop Services
-
-```bash
-docker-compose down
-```
-
-### 2. Update Code
-
-```bash
-git pull origin main
-```
-
-### 3. Rebuild Images
-
-```bash
-docker-compose build --no-cache
-```
-
-### 4. Start Updated Application
-
-```bash
-docker-compose up -d
-```
-
-### 5. Run Migrations (if any)
-
-```bash
-docker-compose exec api php bin/console doctrine:migrations:migrate
-```
-
-## Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check MariaDB status
-docker-compose exec mariadb mysql -u root -p -e "SHOW DATABASES;"
-
-# Check application connection
-docker-compose exec api php bin/console doctrine:database:create --if-not-exists
-```
-
-### API Issues
-
-```bash
-# Check application logs
-docker-compose logs api
-
-# Check API availability
-curl -I http://localhost/api/rates/last-24h?pair=EUR/BTC
-```
-
-### Scheduler Issues
-
-```bash
-# Manual rate update
-docker-compose exec api php bin/console app:update-crypto-rates
-
-# Check scheduler logs
-docker-compose logs scheduler
-```
-
-## Security
-
-### Firewall Configuration
-
-```bash
-# Allow only necessary ports
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw enable
-```
-
-### Secret Updates
-
-```bash
-# Generate new APP_SECRET
-openssl rand -hex 32
-```
-
-### SSL Configuration (recommended for production)
-
-Use reverse proxy (nginx, Apache) with SSL certificates to protect the API.
-
-## Scaling
-
-### Horizontal Scaling
-
-To increase load capacity:
-
-1. Increase the number of API service replicas
-2. Use load balancer
-3. Configure read replicas for the database
-
-### Vertical Scaling
-
-Increase container resources in docker-compose.yaml:
+#### Option 2: Self-hosted Database
+To deploy MariaDB in a container, edit `compose.prod.yaml`:
 
 ```yaml
 services:
-  api:
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
+  mariadb:
+    image: mariadb:11.2
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: crypto_rates
+      MARIADB_USER: ${DATABASE_USER}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  mariadb_data:
+```
+
+## 🚀 Deployment
+
+### Method 1: Docker Compose
+
+```bash
+# 1. Build production images
+docker compose -f compose.prod.yaml build
+
+# 2. Start services
+docker compose -f compose.prod.yaml up -d
+
+# 3. Run migrations
+docker compose -f compose.prod.yaml exec api php bin/console doctrine:migrations:migrate --no-interaction
+
+# 4. Verify deployment
+docker compose -f compose.prod.yaml ps
+curl "http://your-domain/api/rates/last-24h?pair=EUR/BTC"
+```
+
+### Method 2: Container Registry
+
+```bash
+# 1. Build and push to registry
+docker build -f docker/frankenphp/Dockerfile --target prod -t your-registry/crypto-rates:1.0.0 .
+docker push your-registry/crypto-rates:1.0.0
+
+# 2. Update compose file
+# Replace build with: image: your-registry/crypto-rates:1.0.0
+
+# 3. Deploy
+docker compose -f compose.prod.yaml pull
+docker compose -f compose.prod.yaml up -d
+```
+
+## 🔒 Security
+
+### Basic Security Setup
+```bash
+# Generate secure app secret
+APP_SECRET=$(openssl rand -hex 32)
+
+# Configure CORS for your domain
+CORS_ALLOW_ORIGIN=^https?://(yourdomain\.com)(:[0-9]+)?$
+
+# Use strong database passwords
+DATABASE_PASSWORD=$(openssl rand -base64 32)
+```
+
+## 📊 Monitoring
+
+### Prometheus Metrics
+Available at `/metrics` endpoint:
+- HTTP requests: response time, status codes
+- SQL queries: execution time, query count
+- Business metrics: rate updates, API errors
+
+### Logs
+```bash
+# View logs
+docker compose -f compose.prod.yaml logs api
+docker compose -f compose.prod.yaml logs scheduler
+
+# Follow logs in real-time
+docker compose -f compose.prod.yaml logs -f
+```
+
+### Health Checks
+```bash
+# Check API health
+curl -f "http://your-domain/api/rates/last-24h?pair=EUR/BTC"
+
+# Check metrics
+curl "http://your-domain/metrics"
+
+# Container status
+docker compose -f compose.prod.yaml ps
+```
+
+### Updates
+```bash
+# 1. Stop services
+docker compose -f compose.prod.yaml down
+
+# 2. Update code
+git pull origin main
+
+# 3. Build new images
+docker compose -f compose.prod.yaml build
+
+# 4. Start with migrations
+docker compose -f compose.prod.yaml up -d
+docker compose -f compose.prod.yaml exec api php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+### Log Rotation
+```bash
+# Configure Docker log rotation
+cat > /etc/docker/daemon.json << EOF
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+sudo systemctl reload docker
 ```

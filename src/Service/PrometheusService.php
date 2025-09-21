@@ -7,20 +7,21 @@ use Prometheus\Storage\InMemory;
 use Prometheus\RenderTextFormat;
 use Prometheus\Counter;
 use Prometheus\Histogram;
+use Prometheus\Gauge;
 class PrometheusService
 {
-    private CollectorRegistry $registry;
     private Counter $httpRequestsTotal;
     private Histogram $httpRequestDuration;
     private Counter $sqlQueriesTotal;
     private Histogram $sqlQueryDuration;
 
     public function __construct(
+        private readonly CollectorRegistry $registry,
         private readonly string $appName,
+        private readonly string $appVersion,
         private readonly array $httpDurationBuckets,
         private readonly array $sqlDurationBuckets,
     ) {
-        $this->registry = new CollectorRegistry(new InMemory());
 
         $this->httpRequestsTotal = $this->registry->getOrRegisterCounter(
             $this->appName,
@@ -90,8 +91,9 @@ class PrometheusService
 
     public function render(): string
     {
+        $appInfo = "# {$this->appName} v{$this->appVersion}\n";
         $renderer = new RenderTextFormat();
-        return $renderer->render($this->registry->getMetricFamilySamples());
+        return $appInfo . $renderer->render($this->registry->getMetricFamilySamples());
     }
 
     public function getRegistry(): CollectorRegistry

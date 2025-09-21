@@ -1,6 +1,7 @@
 parameters:
     # Application configuration
     app.name: 'crypto_rates_api'
+    app.version: '%env(APP_VERSION)%'
 
     # Monitoring configuration
     app.http_duration_buckets: [ 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0 ]
@@ -17,9 +18,18 @@ parameters:
         'EUR/ETH': 'ETHEUR'
         'EUR/LTC': 'LTCEUR'
 
+    # API request configuration
+    app.binance_api_timeout: '%env(int:BINANCE_API_TIMEOUT)%'
+    app.binance_klines_timeout: '%env(int:BINANCE_KLINES_TIMEOUT)%'
+    app.binance_klines_limit: '%env(int:BINANCE_KLINES_LIMIT)%'
+
+    # Chart configuration
+    app.chart_border_color: '%env(CHART_BORDER_COLOR)%'
+    app.chart_background_color: '%env(CHART_BACKGROUND_COLOR)%'
+
     # OpenTelemetry configuration
-    otel.service_name: '%env(OTEL_SERVICE_NAME)%'
-    otel.service_version: '%env(OTEL_SERVICE_VERSION)%'
+    otel.service_name: '%app.name%'
+    otel.service_version: '%app.version%'
     otel.exporter_traces_endpoint: '%env(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)%'
     otel.exporter_metrics_endpoint: '%env(OTEL_EXPORTER_OTLP_METRICS_ENDPOINT)%'
     app.environment: '%env(APP_ENV)%'

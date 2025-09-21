@@ -13,6 +13,9 @@ final readonly class BinanceApiClientService implements BinanceApiClientInterfac
         private LoggerInterface $logger,
         private string $binanceApiUrl,
         private string $binanceKlinesUrl,
+        private int $binanceApiTimeout,
+        private int $binanceKlinesTimeout,
+        private int $binanceKlinesLimit,
     ) {
     }
 
@@ -24,7 +27,7 @@ final readonly class BinanceApiClientService implements BinanceApiClientInterfac
         try {
             $response = $this->httpClient->request('GET', $this->binanceApiUrl, [
                 'query' => ['symbol' => $symbol],
-                'timeout' => 10
+                'timeout' => $this->binanceApiTimeout
             ]);
 
             $data = $response->toArray();
@@ -59,9 +62,9 @@ final readonly class BinanceApiClientService implements BinanceApiClientInterfac
                     'interval' => $interval,
                     'startTime' => $startTime->getTimestamp() * 1000,
                     'endTime' => $endTime->getTimestamp() * 1000,
-                    'limit' => 1000
+                    'limit' => $this->binanceKlinesLimit
                 ],
-                'timeout' => 30
+                'timeout' => $this->binanceKlinesTimeout
             ]);
 
             return $response->toArray();
