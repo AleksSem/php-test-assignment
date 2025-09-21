@@ -6,7 +6,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-final readonly class BinanceApiClientService
+final readonly class BinanceApiClientService implements BinanceApiClientInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,

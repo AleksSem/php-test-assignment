@@ -5,11 +5,14 @@ Web application built with Symfony and PHP 8.x, providing API for cryptocurrency
 ## Features
 
 - **Periodic updates**: Saving exchange rates (EUR/BTC, EUR/ETH, EUR/LTC) to MySQL every 5 minutes
-- **API endpoints**: JSON responses for charts
+- **API endpoints**: JSON responses for charts (Chart.js ready format)
 - **Automation**: Symfony Scheduler for rate updates
-- **Validation**: Complete input data validation
-- **Error handling**: Centralized exception handling
+- **Validation**: Complete input data validation with DTOs
+- **Error handling**: Centralized exception handling with proper HTTP status codes
 - **Logging**: Detailed logging of all operations
+- **Testing**: Comprehensive test suite (26+ tests)
+- **Financial precision**: DECIMAL(20,8) for accurate cryptocurrency rates
+- **Production ready**: Docker, monitoring, metrics, tracing
 
 ## Technologies
 
@@ -284,6 +287,39 @@ All operations are logged using PSR-3 Logger:
 - Exceptions
 
 ## Testing
+
+### Automated Testing
+
+The application includes comprehensive test coverage:
+
+**Run all unit tests:**
+```bash
+# All unit tests (Entity, DTO, Service validation)
+docker compose exec api php bin/phpunit tests/Unit/ --testdox
+
+# Specific test suites
+docker compose exec api php bin/phpunit tests/Unit/Entity/ --testdox
+docker compose exec api php bin/phpunit tests/Unit/DTO/ --testdox
+```
+
+**Run integration tests:**
+```bash
+# HTTP client and API integration tests
+docker compose exec api php bin/phpunit tests/Integration/ --testdox
+```
+
+**Run functional tests:**
+```bash
+# Full API endpoint testing
+docker compose exec api php bin/phpunit tests/Functional/ --testdox
+```
+
+**Test Coverage:**
+- ✅ **Entity Tests** (8 tests) - CryptoRate validation, DECIMAL precision
+- ✅ **DTO Tests** (10 tests) - Request validation, currency pairs, date formats
+- ✅ **Service Tests** (3 tests) - Exception handling, error responses
+- ✅ **Integration Tests** (6 tests) - Binance API client, HTTP mocking
+- ✅ **Functional Tests** (9 tests) - API endpoints, chart format validation
 
 ### Manual API Testing
 
