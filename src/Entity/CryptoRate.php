@@ -2,23 +2,15 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CryptoRateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: CryptoRateRepository::class)]
 #[ORM\Table(name: 'crypto_rates')]
 #[ORM\Index(name: 'idx_pair_timestamp', columns: ['pair', 'timestamp'])]
-#[ApiResource(
-    operations: [
-        new GetCollection(),
-        new Get()
-    ]
-)]
 class CryptoRate
 {
     #[ORM\Id]
@@ -38,14 +30,14 @@ class CryptoRate
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Assert\NotBlank]
-    private \DateTimeImmutable $timestamp;
+    private DateTimeImmutable $timestamp;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     final public function getId(): ?int
@@ -75,23 +67,23 @@ class CryptoRate
         return $this;
     }
 
-    final public function getTimestamp(): \DateTimeImmutable
+    final public function getTimestamp(): DateTimeImmutable
     {
         return $this->timestamp;
     }
 
-    final public function setTimestamp(\DateTimeImmutable $timestamp): self
+    final public function setTimestamp(DateTimeImmutable $timestamp): self
     {
         $this->timestamp = $timestamp;
         return $this;
     }
 
-    final public function getCreatedAt(): \DateTimeImmutable
+    final public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    final public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    final public function setCreatedAt(DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;

@@ -4,49 +4,41 @@ namespace App\Tests\Unit\DTO;
 
 use App\DTO\CryptoRatesRequest;
 use App\DTO\Last24HoursRequest;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Validator\Validation;
+use App\Tests\Helper\TestConstants;
+use App\Tests\Helper\ValidatorTestCase;
 
-class CryptoRatesRequestTest extends TestCase
+class CryptoRatesRequestTest extends ValidatorTestCase
 {
-    private $validator;
-
-    protected function setUp(): void
-    {
-        $this->validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-    }
 
     public function testValidCryptoRatesRequest(): void
     {
-        $request = new CryptoRatesRequest('EUR/BTC', '2025-09-21');
+        $request = new CryptoRatesRequest('EUR/BTC', TestConstants::TEST_DATES['DEFAULT_DATE']);
 
         $violations = $this->validator->validate($request);
 
-        $this->assertCount(0, $violations);
+        $this->assertNoViolations($violations);
         $this->assertEquals('EUR/BTC', $request->getPair());
-        $this->assertEquals('2025-09-21', $request->getDate());
+        $this->assertEquals(TestConstants::TEST_DATES['DEFAULT_DATE'], $request->getDate());
     }
 
     public function testInvalidPair(): void
     {
-        $request = new CryptoRatesRequest('INVALID/PAIR', '2025-09-21');
+        $request = new CryptoRatesRequest('INVALID/PAIR', TestConstants::TEST_DATES['DEFAULT_DATE']);
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('Unsupported pair', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair', 'Unsupported pair');
     }
 
     public function testEmptyPair(): void
     {
-        $request = new CryptoRatesRequest('', '2025-09-21');
+        $request = new CryptoRatesRequest('', TestConstants::TEST_DATES['DEFAULT_DATE']);
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('required', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair', 'required');
     }
 
     public function testInvalidDate(): void
@@ -55,8 +47,8 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('Invalid date format', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'date', 'Invalid date format');
     }
 
     public function testEmptyDate(): void
@@ -65,8 +57,8 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('required', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'date', 'required');
     }
 
     public function testNullDate(): void
@@ -75,19 +67,22 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
+        $this->assertHasViolations($violations);
     }
 
-    public function testAllSupportedPairs(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('supportedPairsProvider')]
+    public function testSupportedPairs(string $pair): void
     {
-        $supportedPairs = ['EUR/BTC', 'EUR/ETH', 'EUR/LTC'];
+        $request = new CryptoRatesRequest($pair, TestConstants::TEST_DATES['DEFAULT_DATE']);
+        $violations = $this->validator->validate($request);
 
-        foreach ($supportedPairs as $pair) {
-            $request = new CryptoRatesRequest($pair, '2025-09-21');
-            $violations = $this->validator->validate($request);
+        $this->assertNoViolations($violations, "Pair {$pair} should be valid");
+    }
 
-            $this->assertCount(0, $violations, "Pair {$pair} should be valid");
-        }
+    public static function supportedPairsProvider(): array
+    {
+        $supportedPairs = array_keys(array_slice(TestConstants::DEFAULT_SUPPORTED_PAIRS, 0, 3, true));
+        return array_map(fn($pair) => [$pair], $supportedPairs);
     }
 
     public function testValidLast24HoursRequest(): void
@@ -96,7 +91,7 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertCount(0, $violations);
+        $this->assertNoViolations($violations);
         $this->assertEquals('EUR/BTC', $request->getPair());
     }
 
@@ -106,8 +101,8 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('Unsupported pair', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair', 'Unsupported pair');
     }
 
     public function testEmptyLast24HoursRequest(): void
@@ -116,7 +111,7 @@ class CryptoRatesRequestTest extends TestCase
 
         $violations = $this->validator->validate($request);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $this->assertStringContainsString('required', $violations[0]->getMessage());
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair', 'required');
     }
 }

@@ -1,0 +1,24 @@
+services:
+    # Test environment service overrides
+    _defaults:
+        public: true
+
+    # Mock HTTP client for all tests
+    test.mock_http_client:
+        class: Symfony\Component\HttpClient\MockHttpClient
+        arguments:
+            - '@App\Tests\Helper\MockHttpResponseProvider'
+
+    # Mock response provider
+    App\Tests\Helper\MockHttpResponseProvider:
+        class: App\Tests\Helper\MockHttpResponseProvider
+
+    # Override BinanceApiClientService to use mock HTTP client
+    App\Service\BinanceApiClientService:
+        class: App\Service\BinanceApiClientService
+        arguments:
+            $httpClient: '@test.mock_http_client'
+            $logger: '@logger'
+            $binanceKlinesUrl: 'https://api.binance.com/api/v3/klines'
+            $binanceKlinesTimeout: 30
+            $binanceKlinesLimit: 1000

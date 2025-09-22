@@ -2,16 +2,13 @@
 
 namespace App\EventListener;
 
-use App\Service\OpenTelemetryService;
-use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\Context\Context;
-use OpenTelemetry\Context\ScopeInterface;
+use App\Monitoring\OpenTelemetryService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
 
 class TracingSubscriber implements EventSubscriberInterface
 {
@@ -19,7 +16,8 @@ class TracingSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private readonly OpenTelemetryService $openTelemetryService,
-        private readonly array $monitoringSkipUrls
+        private readonly array $monitoringSkipUrls,
+        private readonly bool $otelEnabled = true
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -33,7 +31,7 @@ class TracingSubscriber implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest()) {
+        if (!$this->otelEnabled || !$event->isMainRequest()) {
             return;
         }
 

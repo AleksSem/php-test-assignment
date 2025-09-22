@@ -11,10 +11,8 @@ when@dev:
                 level: debug
                 channels: ["!event"]
             gelf:
-                type: gelf
-                publisher:
-                    hostname: '%graylog.hostname%'
-                    port: '%graylog.port%'
+                type: service
+                id: App\Log\ResilientGelfHandler
                 level: debug
                 channels: ["!event"]
             console:
@@ -40,10 +38,8 @@ when@prod:
     monolog:
         handlers:
             gelf:
-                type: gelf
-                publisher:
-                    hostname: '%graylog.hostname%'
-                    port: '%graylog.port%'
+                type: service
+                id: App\Log\ResilientGelfHandler
                 level: warning
                 channels: ["!event"]
             stderr:

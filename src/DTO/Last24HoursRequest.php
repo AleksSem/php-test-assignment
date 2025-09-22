@@ -18,7 +18,7 @@ readonly class Last24HoursRequest
         $this->pair = $pair;
     }
 
-    public function getPair(): string
+    final public function getPair(): string
     {
         return $this->pair;
     }

@@ -41,8 +41,16 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: >
       sh -c "
+        echo 'Running composer install...' &&
+        composer install &&
         echo 'Waiting for database to be ready...' &&
         php bin/console doctrine:database:create --if-not-exists &&
         php bin/console doctrine:migrations:migrate --no-interaction &&
@@ -68,7 +76,7 @@ services:
       mariadb:
         condition: service_healthy
       api:
-        condition: service_started
+        condition: service_healthy
     command: >
       sh -c "
         echo 'Waiting for API service to be ready...' &&

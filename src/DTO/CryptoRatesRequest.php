@@ -25,12 +25,12 @@ readonly class CryptoRatesRequest
         $this->date = $date;
     }
 
-    public function getPair(): string
+    final public function getPair(): string
     {
         return $this->pair;
     }
 
-    public function getDate(): ?string
+    final public function getDate(): ?string
     {
         return $this->date;
     }

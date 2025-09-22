@@ -2,14 +2,14 @@
 
 namespace App\Service;
 
+use DateTimeImmutable;
+
 interface BinanceApiClientInterface
 {
-    public function fetchCurrentPrice(string $symbol): string;
-
     public function fetchKlines(
         string $symbol,
         string $interval,
-        \DateTimeImmutable $startTime,
-        \DateTimeImmutable $endTime
+        DateTimeImmutable $startTime,
+        DateTimeImmutable $endTime
     ): array;
 }

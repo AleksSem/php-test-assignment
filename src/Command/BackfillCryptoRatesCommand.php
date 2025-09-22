@@ -28,8 +28,7 @@ class BackfillCryptoRatesCommand extends Command
         $this
             ->addArgument('days', InputArgument::OPTIONAL, 'Number of days to backfill', 7)
             ->addOption('pair', 'p', InputOption::VALUE_OPTIONAL, 'Specific pair to backfill (EUR/BTC, EUR/ETH, EUR/LTC)')
-            ->addOption('interval', 'i', InputOption::VALUE_OPTIONAL, 'Data interval (5m, 1h, 1d)', '5m')
-            ->setHelp('This command allows you to backfill historical cryptocurrency rates from Binance API')
+            ->setHelp('This command allows you to backfill historical cryptocurrency rates from Binance API using configured interval')
         ;
     }
 
@@ -39,24 +38,17 @@ class BackfillCryptoRatesCommand extends Command
 
         $days = (int) $input->getArgument('days');
         $pair = $input->getOption('pair');
-        $interval = $input->getOption('interval');
 
         if ($days <= 0 || $days > 365) {
             $io->error('Days must be between 1 and 365');
             return Command::FAILURE;
         }
 
-        $validIntervals = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d'];
-        if (!in_array($interval, $validIntervals)) {
-            $io->error('Invalid interval. Supported: ' . implode(', ', $validIntervals));
-            return Command::FAILURE;
-        }
-
         $io->title('Backfilling cryptocurrency rates from Binance API');
-        $io->info("Backfilling {$days} days of data with {$interval} interval");
+        $io->info("Backfilling {$days} days of data using configured interval");
 
         try {
-            $result = $this->binanceApiService->backfillHistoricalRates($days, $pair, $interval);
+            $result = $this->binanceApiService->backfillHistoricalRates($days, $pair);
 
             $io->success([
                 'Historical rates backfilled successfully!',

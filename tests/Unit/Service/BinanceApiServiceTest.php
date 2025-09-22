@@ -4,16 +4,20 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\CryptoRate;
 use App\Repository\CryptoRateRepository;
-use App\Service\BinanceApiClientInterface;
+use App\Service\BinanceApiClientService;
 use App\Service\BinanceApiService;
 use App\Service\CryptoRatePersistenceService;
 use App\Service\HistoricalRateBackfillService;
+use App\Tests\Helper\TestConstants;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 class BinanceApiServiceTest extends TestCase
 {
+
     private BinanceApiService $service;
     private MockObject $binanceClient;
     private MockObject $repository;
@@ -23,17 +27,13 @@ class BinanceApiServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->binanceClient = $this->createMock(BinanceApiClientInterface::class);
+        $this->binanceClient = $this->createMock(BinanceApiClientService::class);
         $this->repository = $this->createMock(CryptoRateRepository::class);
         $this->persistence = $this->createMock(CryptoRatePersistenceService::class);
         $this->backfillService = $this->createMock(HistoricalRateBackfillService::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $supportedPairs = [
-            'EUR/BTC' => 'BTCEUR',
-            'EUR/ETH' => 'ETHEUR',
-            'EUR/LTC' => 'LTCEUR'
-        ];
+        $supportedPairs = array_slice(TestConstants::DEFAULT_SUPPORTED_PAIRS, 0, 3, true);
 
         $this->service = new BinanceApiService(
             $this->binanceClient,
@@ -41,32 +41,53 @@ class BinanceApiServiceTest extends TestCase
             $this->persistence,
             $this->backfillService,
             $this->logger,
-            $supportedPairs
+            $supportedPairs,
+            TestConstants::INTERVALS['DEFAULT']
         );
     }
 
     public function testUpdateRatesSuccess(): void
     {
+        $mockKlinesData = [
+            [
+                1640995200000, // Open time
+                "98600.00000000", // Open price
+                "98700.00000000", // High price
+                "98500.00000000", // Low price
+                TestConstants::DEFAULT_RATES['BTCEUR'], // Close price
+                "1.23456789", // Volume
+                1640995259999, // Close time
+                "121317.07000000", // Quote asset volume
+                55, // Number of trades
+                "0.61728394", // Taker buy base asset volume
+                "60658.53500000", // Taker buy quote asset volume
+                "0" // Ignore
+            ]
+        ];
+
+        // No existing rates found
+        $this->repository
+            ->expects($this->exactly(3))
+            ->method('findLatestRate')
+            ->willReturn(null);
+
         $this->binanceClient
             ->expects($this->exactly(3))
-            ->method('fetchCurrentPrice')
-            ->willReturnOnConsecutiveCalls('98606.63000000', '3804.28000000', '97.74000000');
+            ->method('fetchKlines')
+            ->willReturn($mockKlinesData);
+
+        $this->repository
+            ->expects($this->exactly(3))
+            ->method('rateExists')
+            ->willReturn(false);
 
         $this->persistence
             ->expects($this->exactly(3))
             ->method('saveRate')
             ->with(
                 $this->logicalOr('EUR/BTC', 'EUR/ETH', 'EUR/LTC'),
-                $this->logicalOr('98606.63000000', '3804.28000000', '97.74000000'),
-                $this->isInstanceOf(\DateTimeImmutable::class)
-            );
-
-        $this->logger
-            ->expects($this->exactly(3))
-            ->method('info')
-            ->with(
-                'Updated rate for {pair}: {rate}',
-                $this->isType('array')
+                TestConstants::DEFAULT_RATES['BTCEUR'],
+                $this->isInstanceOf(DateTimeImmutable::class)
             );
 
         $this->service->updateRates();
@@ -74,10 +95,15 @@ class BinanceApiServiceTest extends TestCase
 
     public function testUpdateRatesWithApiFailure(): void
     {
+        $this->repository
+            ->expects($this->exactly(3))
+            ->method('findLatestRate')
+            ->willReturn(null);
+
         $this->binanceClient
             ->expects($this->exactly(3))
-            ->method('fetchCurrentPrice')
-            ->willThrowException(new \RuntimeException('API Error'));
+            ->method('fetchKlines')
+            ->willThrowException(new RuntimeException('API Error'));
 
         $this->persistence
             ->expects($this->never())
@@ -87,8 +113,8 @@ class BinanceApiServiceTest extends TestCase
             ->expects($this->exactly(3))
             ->method('error')
             ->with(
-                'Failed to update rate for {pair}: {error}',
-                $this->isType('array')
+                'Failed to update rates for {pair}: {error}',
+                $this->isArray()
             );
 
         $this->service->updateRates();
@@ -97,7 +123,7 @@ class BinanceApiServiceTest extends TestCase
     public function testGetRatesForLast24Hours(): void
     {
         $expectedRates = [
-            $this->createCryptoRate('EUR/BTC', '98606.63000000'),
+            $this->createCryptoRate('EUR/BTC', TestConstants::DEFAULT_RATES['BTCEUR']),
             $this->createCryptoRate('EUR/BTC', '98654.08000000')
         ];
 
@@ -114,9 +140,9 @@ class BinanceApiServiceTest extends TestCase
 
     public function testGetRatesForDay(): void
     {
-        $date = new \DateTimeImmutable('2025-09-21');
+        $date = new DateTimeImmutable(TestConstants::TEST_DATES['DEFAULT_DATE']);
         $expectedRates = [
-            $this->createCryptoRate('EUR/BTC', '98606.63000000'),
+            $this->createCryptoRate('EUR/BTC', TestConstants::DEFAULT_RATES['BTCEUR']),
         ];
 
         $this->repository
@@ -150,7 +176,7 @@ class BinanceApiServiceTest extends TestCase
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair($pair);
         $cryptoRate->setRate($rate);
-        $cryptoRate->setTimestamp(new \DateTimeImmutable());
+        $cryptoRate->setTimestamp(new DateTimeImmutable());
 
         return $cryptoRate;
     }

@@ -6,6 +6,7 @@ use App\DTO\CryptoRatesRequest;
 use App\DTO\Last24HoursRequest;
 use App\Service\BinanceApiService;
 use App\Service\ExceptionHandlerService;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,7 +64,7 @@ class CryptoRatesController extends AbstractController
                 return $this->exceptionHandler->handleValidationErrors($violations);
             }
 
-            $date = new \DateTimeImmutable($requestDto->getDate());
+            $date = new DateTimeImmutable($requestDto->getDate());
             $rates = $this->binanceApiService->getRatesForDay($requestDto->getPair(), $date);
             $data = $this->transformRatesToArray($rates);
 

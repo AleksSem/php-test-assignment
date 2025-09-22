@@ -2,12 +2,12 @@
 
 namespace App\EventListener;
 
-use App\Service\PrometheusService;
+use App\Monitoring\PrometheusService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
 
 class MetricsSubscriber implements EventSubscriberInterface
 {

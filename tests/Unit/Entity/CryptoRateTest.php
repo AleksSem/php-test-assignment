@@ -4,52 +4,38 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\CryptoRate;
 use App\Tests\Fixtures\CryptoRateFixtures;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Validator\Validation;
+use App\Tests\Helper\TestConstants;
+use App\Tests\Helper\ValidatorTestCase;
+use DateTimeImmutable;
 
-class CryptoRateTest extends TestCase
+class CryptoRateTest extends ValidatorTestCase
 {
-    private $validator;
-
-    protected function setUp(): void
-    {
-        $this->validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-    }
 
     public function testValidCryptoRate(): void
     {
-        $timestamp = new \DateTimeImmutable('2025-09-21 12:00:00');
-        $cryptoRate = CryptoRateFixtures::createValidCryptoRate('EUR/BTC', '98606.63000000', $timestamp);
+        $timestamp = new DateTimeImmutable(TestConstants::TEST_DATES['DEFAULT_DATETIME']);
+        $cryptoRate = CryptoRateFixtures::createValidCryptoRate('EUR/BTC', TestConstants::DEFAULT_RATES['BTCEUR'], $timestamp);
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertCount(0, $violations);
+        $this->assertNoViolations($violations);
         $this->assertEquals('EUR/BTC', $cryptoRate->getPair());
-        $this->assertEquals('98606.63000000', $cryptoRate->getRate());
+        $this->assertEquals(TestConstants::DEFAULT_RATES['BTCEUR'], $cryptoRate->getRate());
         $this->assertEquals($timestamp, $cryptoRate->getTimestamp());
-        $this->assertInstanceOf(\DateTimeImmutable::class, $cryptoRate->getCreatedAt());
+        $this->assertInstanceOf(DateTimeImmutable::class, $cryptoRate->getCreatedAt());
     }
 
     public function testEmptyPair(): void
     {
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair('');
-        $cryptoRate->setRate('98606.63000000');
-        $cryptoRate->setTimestamp(new \DateTimeImmutable());
+        $cryptoRate->setRate(TestConstants::DEFAULT_RATES['BTCEUR']);
+        $cryptoRate->setTimestamp(new DateTimeImmutable());
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $foundNotBlankViolation = false;
-        foreach ($violations as $violation) {
-            if ($violation->getPropertyPath() === 'pair') {
-                $foundNotBlankViolation = true;
-                break;
-            }
-        }
-        $this->assertTrue($foundNotBlankViolation);
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair');
     }
 
     public function testEmptyRate(): void
@@ -57,11 +43,11 @@ class CryptoRateTest extends TestCase
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair('EUR/BTC');
         $cryptoRate->setRate('');
-        $cryptoRate->setTimestamp(new \DateTimeImmutable());
+        $cryptoRate->setTimestamp(new DateTimeImmutable());
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertGreaterThan(0, $violations->count());
+        $this->assertHasViolations($violations);
     }
 
     public function testNegativeRate(): void
@@ -69,70 +55,35 @@ class CryptoRateTest extends TestCase
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair('EUR/BTC');
         $cryptoRate->setRate('-100.00000000');
-        $cryptoRate->setTimestamp(new \DateTimeImmutable());
+        $cryptoRate->setTimestamp(new DateTimeImmutable());
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $foundPositiveViolation = false;
-        foreach ($violations as $violation) {
-            if ($violation->getPropertyPath() === 'rate' &&
-                strpos($violation->getMessage(), 'positive') !== false) {
-                $foundPositiveViolation = true;
-                break;
-            }
-        }
-        $this->assertTrue($foundPositiveViolation);
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'rate', 'positive');
     }
 
     public function testPairTooLong(): void
     {
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair('VERYLONGPAIRNAME');
-        $cryptoRate->setRate('98606.63000000');
-        $cryptoRate->setTimestamp(new \DateTimeImmutable());
+        $cryptoRate->setRate(TestConstants::DEFAULT_RATES['BTCEUR']);
+        $cryptoRate->setTimestamp(new DateTimeImmutable());
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertGreaterThan(0, $violations->count());
-        $foundLengthViolation = false;
-        foreach ($violations as $violation) {
-            if ($violation->getPropertyPath() === 'pair') {
-                $foundLengthViolation = true;
-                break;
-            }
-        }
-        $this->assertTrue($foundLengthViolation);
+        $this->assertHasViolations($violations);
+        $this->assertViolationForProperty($violations, 'pair');
     }
 
     public function testCreatedAtIsSetAutomatically(): void
     {
-        $beforeCreation = new \DateTimeImmutable();
-
+        $beforeCreation = new DateTimeImmutable();
         $cryptoRate = new CryptoRate();
-
-        $afterCreation = new \DateTimeImmutable();
+        $afterCreation = new DateTimeImmutable();
 
         $this->assertGreaterThanOrEqual($beforeCreation, $cryptoRate->getCreatedAt());
         $this->assertLessThanOrEqual($afterCreation, $cryptoRate->getCreatedAt());
-    }
-
-    public function testGettersAndSetters(): void
-    {
-        $cryptoRate = new CryptoRate();
-        $timestamp = new \DateTimeImmutable('2025-09-21 12:00:00');
-        $createdAt = new \DateTimeImmutable('2025-09-21 12:01:00');
-
-        $cryptoRate->setPair('EUR/ETH');
-        $cryptoRate->setRate('3804.28000000');
-        $cryptoRate->setTimestamp($timestamp);
-        $cryptoRate->setCreatedAt($createdAt);
-
-        $this->assertEquals('EUR/ETH', $cryptoRate->getPair());
-        $this->assertEquals('3804.28000000', $cryptoRate->getRate());
-        $this->assertEquals($timestamp, $cryptoRate->getTimestamp());
-        $this->assertEquals($createdAt, $cryptoRate->getCreatedAt());
-        $this->assertNull($cryptoRate->getId()); // ID is null until persisted
     }
 
     public function testHighPrecisionRate(): void
@@ -141,22 +92,20 @@ class CryptoRateTest extends TestCase
 
         $violations = $this->validator->validate($cryptoRate);
 
-        $this->assertCount(0, $violations);
+        $this->assertNoViolations($violations);
         $this->assertEquals('98606.12345678', $cryptoRate->getRate());
     }
 
-    /**
-     * @dataProvider validationDataProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('validationDataProvider')]
     public function testValidationWithFixtures(string $pair, string $rate, bool $expectValid): void
     {
         $cryptoRate = CryptoRateFixtures::createValidCryptoRate($pair, $rate);
         $violations = $this->validator->validate($cryptoRate);
 
         if ($expectValid) {
-            $this->assertCount(0, $violations, "Expected {$pair} with rate {$rate} to be valid");
+            $this->assertNoViolations($violations, "Expected {$pair} with rate {$rate} to be valid");
         } else {
-            $this->assertGreaterThan(0, $violations->count(), "Expected {$pair} with rate {$rate} to be invalid");
+            $this->assertHasViolations($violations, "Expected {$pair} with rate {$rate} to be invalid");
         }
     }
 
@@ -169,13 +118,17 @@ class CryptoRateTest extends TestCase
         return $testCases;
     }
 
-    public function testAllSupportedPairs(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('supportedPairsProvider')]
+    public function testSupportedPairValidation(string $pair): void
     {
-        foreach (CryptoRateFixtures::getSupportedPairs() as $pair) {
-            $cryptoRate = CryptoRateFixtures::createValidCryptoRate($pair, '100.00000000');
-            $violations = $this->validator->validate($cryptoRate);
+        $cryptoRate = CryptoRateFixtures::createValidCryptoRate($pair, '100.00000000');
+        $violations = $this->validator->validate($cryptoRate);
 
-            $this->assertCount(0, $violations, "Pair {$pair} should be valid");
-        }
+        $this->assertNoViolations($violations, "Pair {$pair} should be valid");
+    }
+
+    public static function supportedPairsProvider(): array
+    {
+        return array_map(fn($pair) => [$pair], CryptoRateFixtures::getSupportedPairs());
     }
 }

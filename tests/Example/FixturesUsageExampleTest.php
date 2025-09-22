@@ -4,6 +4,7 @@ namespace App\Tests\Example;
 
 use App\Tests\Fixtures\CryptoRateFixtures;
 use App\Tests\Fixtures\RequestFixtures;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,7 +21,7 @@ class FixturesUsageExampleTest extends TestCase
 
         $this->assertEquals('EUR/BTC', $btcRate->getPair());
         $this->assertEquals('98606.63000000', $btcRate->getRate());
-        $this->assertInstanceOf(\DateTimeImmutable::class, $btcRate->getTimestamp());
+        $this->assertInstanceOf(DateTimeImmutable::class, $btcRate->getTimestamp());
     }
 
     public function testCryptoRateFixturesAllPairs(): void
@@ -43,7 +44,7 @@ class FixturesUsageExampleTest extends TestCase
         $this->assertCount(5, $rates);
 
         // Verify timestamps are sequential
-        for ($i = 1; $i < count($rates); $i++) {
+        for ($i = 1, $iMax = count($rates); $i < $iMax; $i++) {
             $this->assertGreaterThan(
                 $rates[$i - 1]->getTimestamp(),
                 $rates[$i]->getTimestamp()

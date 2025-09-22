@@ -4,18 +4,22 @@ namespace App\Scheduler;
 
 use App\Service\BinanceApiService;
 use Symfony\Component\Scheduler\Attribute\AsPeriodicTask;
-use Symfony\Component\Scheduler\Attribute\AsTask;
 
-#[AsTask]
-#[AsPeriodicTask(frequency: '5 minutes')]
+/**
+ * Periodic task: updates crypto rates from Binance every 5 minutes.
+ */
+#[AsPeriodicTask(
+    frequency: 'PT5M',
+    method: 'update'
+)]
 class UpdateCryptoRatesTask
 {
     public function __construct(
-        private BinanceApiService $binanceApiService
+        private readonly BinanceApiService $binanceApiService
     ) {
     }
 
-    public function __invoke(): void
+    final public function update(): void
     {
         $this->binanceApiService->updateRates();
     }

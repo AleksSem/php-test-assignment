@@ -15,13 +15,12 @@ services:
             $appVersion: '%app.version%'
             $httpDurationBuckets: '%app.http_duration_buckets%'
             $sqlDurationBuckets: '%app.sql_duration_buckets%'
-            $binanceApiUrl: '%app.binance_api_url%'
             $binanceKlinesUrl: '%app.binance_klines_url%'
             $supportedPairs: '%app.supported_pairs%'
             $monitoringSkipUrls: '%app.monitoring_skip_urls%'
-            $binanceApiTimeout: '%app.binance_api_timeout%'
             $binanceKlinesTimeout: '%app.binance_klines_timeout%'
             $binanceKlinesLimit: '%app.binance_klines_limit%'
+            $cryptoRatesInterval: '%app.crypto_rates_interval%'
             $chartBorderColor: '%app.chart_border_color%'
             $chartBackgroundColor: '%app.chart_background_color%'
 
@@ -31,13 +30,31 @@ services:
 
     App\Service\BinanceApiClientService:
         arguments:
-            $httpClient: '@App\Service\TracingHttpClient'
+            $httpClient: '@App\Monitoring\TracingHttpClient'
 
-    App\Service\TracingHttpClient:
+    App\Monitoring\TracingHttpClient:
         arguments:
             $httpClient: '@http_client'
+            $otelEnabled: '%otel.enabled%'
 
-    App\Service\OpenTelemetryService:
+    # PSR Transport Factory - let it autodiscover the HTTP client
+    otel.transport_factory:
+        class: OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory
+
+    # OpenTelemetry Factory Services
+    App\Factory\OpenTelemetryResourceFactory:
+
+    App\Factory\OpenTelemetryTracerProviderFactory:
+        arguments:
+            $transportFactory: '@otel.transport_factory'
+            $contentType: '%otel.content_type%'
+
+    App\Factory\OpenTelemetryMeterProviderFactory:
+        arguments:
+            $transportFactory: '@otel.transport_factory'
+            $contentType: '%otel.content_type%'
+
+    App\Monitoring\OpenTelemetryService:
         arguments:
             $serviceName: '%otel.service_name%'
             $serviceVersion: '%otel.service_version%'
@@ -45,13 +62,23 @@ services:
             $metricsEndpoint: '%otel.exporter_metrics_endpoint%'
             $environment: '%app.environment%'
 
-    App\Tracing\SqlTracingMiddleware:
+    App\Monitoring\Tracing\SqlTracingMiddleware:
+        arguments:
+            $otelEnabled: '%otel.enabled%'
         tags:
             - { name: 'doctrine.middleware' }
 
-    App\Metrics\SqlMetricsMiddleware:
+    App\Monitoring\Metrics\SqlMetricsMiddleware:
         tags:
             - { name: 'doctrine.middleware' }
+
+    App\EventListener\TracingSubscriber:
+        arguments:
+            $otelEnabled: '%otel.enabled%'
+
+    App\EventListener\ConsoleTracingSubscriber:
+        arguments:
+            $otelEnabled: '%otel.enabled%'
 
     App\Log\GelfProcessor:
         arguments:
@@ -59,6 +86,36 @@ services:
             $environment: '%app.environment%'
         tags:
             - { name: monolog.processor }
+
+    App\Log\ResilientGelfHandler:
+        arguments:
+            $publisher: '@gelf.publisher'
+            $fallbackLogger: '@monolog.logger.gelf_fallback'
+            $connectTimeout: 3
+            $timeout: 5
+
+    gelf.transport:
+        class: Gelf\Transport\UdpTransport
+        arguments:
+            - '%graylog.hostname%'
+            - '%graylog.port%'
+
+    gelf.publisher:
+        class: Gelf\Publisher
+        arguments:
+            - '@gelf.transport'
+
+    monolog.logger.gelf_fallback:
+        class: Monolog\Logger
+        arguments:
+            - 'gelf_fallback'
+            - ['@monolog.handler.stream']
+
+    monolog.handler.stream:
+        class: Monolog\Handler\StreamHandler
+        arguments:
+            - '%kernel.logs_dir%/%kernel.environment%.log'
+            - 200 # INFO level
 
     # Prometheus Configuration
     Prometheus\Storage\InMemory:

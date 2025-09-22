@@ -5,11 +5,12 @@ namespace App\Repository;
 use App\Entity\CryptoRate;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use DateTimeImmutable;
 
 /**
  * @extends ServiceEntityRepository<CryptoRate>
  */
-final class CryptoRateRepository extends ServiceEntityRepository
+class CryptoRateRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -25,7 +26,7 @@ final class CryptoRateRepository extends ServiceEntityRepository
             ->andWhere('c.pair = :pair')
             ->andWhere('c.timestamp >= :startTime')
             ->setParameter('pair', $pair)
-            ->setParameter('startTime', new \DateTimeImmutable('-24 hours'))
+            ->setParameter('startTime', new DateTimeImmutable('-24 hours'))
             ->orderBy('c.timestamp', 'ASC')
             ->getQuery()
             ->getResult();
@@ -34,7 +35,7 @@ final class CryptoRateRepository extends ServiceEntityRepository
     /**
      * Gets rates for specified day
      */
-    public function findRatesForDay(string $pair, \DateTimeImmutable $date): array
+    public function findRatesForDay(string $pair, DateTimeImmutable $date): array
     {
         $startOfDay = $date->setTime(0, 0, 0);
         $endOfDay = $date->setTime(23, 59, 59);
@@ -54,11 +55,25 @@ final class CryptoRateRepository extends ServiceEntityRepository
     /**
      * Checks if a rate already exists for given pair and timestamp
      */
-    public function rateExists(string $pair, \DateTimeImmutable $timestamp): bool
+    public function rateExists(string $pair, DateTimeImmutable $timestamp): bool
     {
         return $this->findOneBy([
             'pair' => $pair,
             'timestamp' => $timestamp
         ]) !== null;
+    }
+
+    /**
+     * Gets the latest rate entry for a specific pair
+     */
+    public function findLatestRate(string $pair): ?CryptoRate
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.pair = :pair')
+            ->setParameter('pair', $pair)
+            ->orderBy('c.timestamp', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

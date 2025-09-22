@@ -1,0 +1,8 @@
+doctrine:
+    dbal:
+        # Use SQLite in-memory database for tests
+        url: 'sqlite:///:memory:'
+        driver: pdo_sqlite
+    orm:
+        # Generate schema instead of using migrations for tests
+        auto_generate_proxy_classes: true

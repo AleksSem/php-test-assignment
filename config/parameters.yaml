@@ -9,7 +9,6 @@ parameters:
     app.monitoring_skip_urls: [ '/metrics', '/favicon.ico', '/health', '/status' ]
 
     # Binance API endpoints
-    app.binance_api_url: 'https://api.binance.com/api/v3/ticker/price'
     app.binance_klines_url: 'https://api.binance.com/api/v3/klines'
 
     # Supported cryptocurrency pairs
@@ -19,15 +18,16 @@ parameters:
         'EUR/LTC': 'LTCEUR'
 
     # API request configuration
-    app.binance_api_timeout: '%env(int:BINANCE_API_TIMEOUT)%'
     app.binance_klines_timeout: '%env(int:BINANCE_KLINES_TIMEOUT)%'
     app.binance_klines_limit: '%env(int:BINANCE_KLINES_LIMIT)%'
+    app.crypto_rates_interval: '5m'
 
     # Chart configuration
     app.chart_border_color: '%env(CHART_BORDER_COLOR)%'
     app.chart_background_color: '%env(CHART_BACKGROUND_COLOR)%'
 
     # OpenTelemetry configuration
+    otel.enabled: '%env(bool:OTEL_ENABLED)%'
     otel.service_name: '%app.name%'
     otel.service_version: '%app.version%'
     otel.exporter_traces_endpoint: '%env(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)%'
@@ -38,4 +38,5 @@ parameters:
     graylog.hostname: '%env(GRAYLOG_HOSTNAME)%'
     graylog.port: '%env(int:GRAYLOG_PORT)%'
 
-
+    # OpenTelemetry Content Type
+    otel.content_type: 'application/json'

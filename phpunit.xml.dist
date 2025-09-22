@@ -31,6 +31,23 @@
         </include>
         <exclude>
             <file>src/Kernel.php</file>
+            <directory suffix=".php">src/Monitoring</directory>
+            <file>src/EventListener/MetricsSubscriber.php</file>
+            <file>src/EventListener/TracingSubscriber.php</file>
+            <file>src/EventListener/ConsoleTracingSubscriber.php</file>
+            <file>src/Factory/OpenTelemetryMeterProviderFactory.php</file>
+            <file>src/Factory/OpenTelemetryResourceFactory.php</file>
+            <file>src/Log/GelfProcessor.php</file>
+            <file>src/Log/ResilientGelfHandler.php</file>
         </exclude>
     </source>
+
+    <coverage includeUncoveredFiles="true"
+              processUncoveredFiles="true"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="false">
+        <report>
+            <text outputFile="php://stdout" showUncoveredFiles="true" showOnlySummary="false"/>
+        </report>
+    </coverage>
 </phpunit>

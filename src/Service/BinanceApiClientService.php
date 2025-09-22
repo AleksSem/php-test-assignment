@@ -2,48 +2,21 @@
 
 namespace App\Service;
 
+use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use RuntimeException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
-final readonly class BinanceApiClientService implements BinanceApiClientInterface
+readonly class BinanceApiClientService implements BinanceApiClientInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
-        private string $binanceApiUrl,
         private string $binanceKlinesUrl,
-        private int $binanceApiTimeout,
         private int $binanceKlinesTimeout,
         private int $binanceKlinesLimit,
     ) {
-    }
-
-    /**
-     * Fetches current price for a symbol from Binance API
-     */
-    public function fetchCurrentPrice(string $symbol): string
-    {
-        try {
-            $response = $this->httpClient->request('GET', $this->binanceApiUrl, [
-                'query' => ['symbol' => $symbol],
-                'timeout' => $this->binanceApiTimeout
-            ]);
-
-            $data = $response->toArray();
-
-            if (!isset($data['price'])) {
-                throw new \RuntimeException('Price not found in Binance API response');
-            }
-
-            return $data['price'];
-        } catch (ExceptionInterface $e) {
-            $this->logger->error('Failed to fetch current price for symbol {symbol}: {error}', [
-                'symbol' => $symbol,
-                'error' => $e->getMessage()
-            ]);
-            throw new \RuntimeException('Failed to fetch rate from Binance API: ' . $e->getMessage(), 0, $e);
-        }
     }
 
     /**
@@ -52,8 +25,8 @@ final readonly class BinanceApiClientService implements BinanceApiClientInterfac
     public function fetchKlines(
         string $symbol,
         string $interval,
-        \DateTimeImmutable $startTime,
-        \DateTimeImmutable $endTime
+        DateTimeImmutable $startTime,
+        DateTimeImmutable $endTime
     ): array {
         try {
             $response = $this->httpClient->request('GET', $this->binanceKlinesUrl, [
@@ -68,12 +41,12 @@ final readonly class BinanceApiClientService implements BinanceApiClientInterfac
             ]);
 
             return $response->toArray();
-        } catch (ExceptionInterface $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Failed to fetch klines for symbol {symbol}: {error}', [
                 'symbol' => $symbol,
                 'error' => $e->getMessage()
             ]);
-            throw new \RuntimeException('Failed to fetch klines from Binance API: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to fetch klines from Binance API: ' . $e->getMessage(), 0, $e);
         }
     }
 }

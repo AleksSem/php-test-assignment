@@ -15,4 +15,13 @@ class MainController extends AbstractController
             'message' => 'Welcome to the Crypto Rates API',
         ]);
     }
+
+    #[Route('/health', name: 'health_check', methods: ['GET'])]
+    final public function health(): Response
+    {
+        return $this->json([
+            'status' => 'ok',
+            'timestamp' => time(),
+        ]);
+    }
 }

@@ -36,7 +36,7 @@ realpath_cache_size=4096K\n\
 realpath_cache_ttl=600\n' > /usr/local/etc/php/conf.d/opcache.ini
 
 # Expose ports
-EXPOSE 80 443 2019
+EXPOSE 80 443
 
 # Development image
 FROM base as dev
@@ -44,9 +44,16 @@ FROM base as dev
 # Composer version
 ENV COMPOSER_VERSION=2.8.12
 
-# Install Composer
+# Install Composer and Xdebug for development and coverage
 RUN apk add --no-cache \
     git \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    linux-headers \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug \
     && curl -sS https://getcomposer.org/installer | php -- \
     --version=$COMPOSER_VERSION \
     --install-dir=/usr/local/bin \
@@ -61,7 +68,7 @@ log_errors = On\n\
 error_log = /dev/stderr\n\
 opcache.validate_timestamps = 1\n\
 opcache.revalidate_freq = 0\n\
-xdebug.mode = develop\n\
+xdebug.mode = develop,coverage\n\
 allow_url_fopen = On\n' > /usr/local/etc/php/conf.d/dev.ini
 
 # Production image

@@ -3,39 +3,40 @@
 namespace App\Tests\Fixtures;
 
 use App\Entity\CryptoRate;
+use DateTimeImmutable;
 
 class CryptoRateFixtures
 {
     public static function createValidCryptoRate(
         string $pair = 'EUR/BTC',
         string $rate = '98606.63000000',
-        ?\DateTimeImmutable $timestamp = null
+        ?DateTimeImmutable $timestamp = null
     ): CryptoRate {
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair($pair);
         $cryptoRate->setRate($rate);
-        $cryptoRate->setTimestamp($timestamp ?? new \DateTimeImmutable());
+        $cryptoRate->setTimestamp($timestamp ?? new DateTimeImmutable());
 
         return $cryptoRate;
     }
 
     public static function createBtcRate(
         string $rate = '98606.63000000',
-        ?\DateTimeImmutable $timestamp = null
+        ?DateTimeImmutable $timestamp = null
     ): CryptoRate {
         return self::createValidCryptoRate('EUR/BTC', $rate, $timestamp);
     }
 
     public static function createEthRate(
         string $rate = '3804.28000000',
-        ?\DateTimeImmutable $timestamp = null
+        ?DateTimeImmutable $timestamp = null
     ): CryptoRate {
         return self::createValidCryptoRate('EUR/ETH', $rate, $timestamp);
     }
 
     public static function createLtcRate(
         string $rate = '97.74000000',
-        ?\DateTimeImmutable $timestamp = null
+        ?DateTimeImmutable $timestamp = null
     ): CryptoRate {
         return self::createValidCryptoRate('EUR/LTC', $rate, $timestamp);
     }
@@ -57,7 +58,7 @@ class CryptoRateFixtures
     public static function createLast24HoursRates(string $pair = 'EUR/BTC'): array
     {
         $rates = [];
-        $baseTimestamp = new \DateTimeImmutable('-23 hours');
+        $baseTimestamp = new DateTimeImmutable('-23 hours');
 
         // Create rates every hour for last 24 hours
         for ($i = 0; $i < 24; $i++) {
@@ -77,9 +78,9 @@ class CryptoRateFixtures
 
     public static function createDayRates(
         string $pair = 'EUR/BTC',
-        \DateTimeImmutable $date = null
+        DateTimeImmutable $date = null
     ): array {
-        $date = $date ?? new \DateTimeImmutable('today');
+        $date = $date ?? new DateTimeImmutable('today');
         $rates = [];
 
         // Create rates every 5 minutes for a day (288 rates)
@@ -98,9 +99,9 @@ class CryptoRateFixtures
         return $rates;
     }
 
-    public static function createMultiPairRates(\DateTimeImmutable $timestamp = null): array
+    public static function createMultiPairRates(DateTimeImmutable $timestamp = null): array
     {
-        $timestamp = $timestamp ?? new \DateTimeImmutable();
+        $timestamp = $timestamp ?? new DateTimeImmutable();
 
         return [
             self::createBtcRate('98606.63000000', $timestamp),
@@ -115,7 +116,7 @@ class CryptoRateFixtures
         string $interval = '+5 minutes'
     ): array {
         $rates = [];
-        $timestamp = new \DateTimeImmutable('-1 hour');
+        $timestamp = new DateTimeImmutable('-1 hour');
 
         for ($i = 0; $i < $count; $i++) {
             $timestamp = $timestamp->modify($interval);
@@ -129,11 +130,11 @@ class CryptoRateFixtures
     public static function createChartDataSample(): array
     {
         return [
-            self::createBtcRate('98639.69000000', new \DateTimeImmutable('2025-09-21 12:22:50')),
-            self::createBtcRate('98654.08000000', new \DateTimeImmutable('2025-09-21 12:37:51')),
-            self::createBtcRate('98654.10000000', new \DateTimeImmutable('2025-09-21 12:38:54')),
-            self::createBtcRate('98645.36000000', new \DateTimeImmutable('2025-09-21 12:42:50')),
-            self::createBtcRate('98621.69000000', new \DateTimeImmutable('2025-09-21 12:47:50')),
+            self::createBtcRate('98639.69000000', new DateTimeImmutable('2025-09-21 12:22:50')),
+            self::createBtcRate('98654.08000000', new DateTimeImmutable('2025-09-21 12:37:51')),
+            self::createBtcRate('98654.10000000', new DateTimeImmutable('2025-09-21 12:38:54')),
+            self::createBtcRate('98645.36000000', new DateTimeImmutable('2025-09-21 12:42:50')),
+            self::createBtcRate('98621.69000000', new DateTimeImmutable('2025-09-21 12:47:50')),
         ];
     }
 

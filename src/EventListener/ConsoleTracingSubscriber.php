@@ -2,13 +2,11 @@
 
 namespace App\EventListener;
 
-use App\Service\OpenTelemetryService;
-use OpenTelemetry\API\Trace\SpanInterface;
-use OpenTelemetry\Context\ScopeInterface;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
-use Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use App\Monitoring\OpenTelemetryService;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ConsoleTracingSubscriber implements EventSubscriberInterface
@@ -16,7 +14,8 @@ class ConsoleTracingSubscriber implements EventSubscriberInterface
     private array $activeSpans = [];
 
     public function __construct(
-        private readonly OpenTelemetryService $openTelemetryService
+        private readonly OpenTelemetryService $openTelemetryService,
+        private readonly bool $otelEnabled = true
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -30,6 +29,10 @@ class ConsoleTracingSubscriber implements EventSubscriberInterface
 
     public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
+        if (!$this->otelEnabled) {
+            return;
+        }
+
         $command = $event->getCommand();
         if (!$command) {
             return;
@@ -70,6 +73,10 @@ class ConsoleTracingSubscriber implements EventSubscriberInterface
 
     public function onConsoleTerminate(ConsoleTerminateEvent $event): void
     {
+        if (!$this->otelEnabled) {
+            return;
+        }
+
         $command = $event->getCommand();
         if (!$command) {
             return;

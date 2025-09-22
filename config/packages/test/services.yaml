@@ -1,0 +1,32 @@
+services:
+    # Disable OpenTelemetry completely for tests
+    App\Monitoring\Tracing\SqlTracingMiddleware:
+        arguments:
+            $otelEnabled: false
+        tags:
+            - { name: 'doctrine.middleware' }
+
+    App\Monitoring\Metrics\SqlMetricsMiddleware:
+        arguments:
+            $otelEnabled: false
+        tags:
+            - { name: 'doctrine.middleware' }
+
+    # TracingSubscriber will be disabled via otel.enabled flag
+
+    # Mock HTTP client for tests - never call external APIs
+    http_client:
+        class: Symfony\Component\HttpClient\MockHttpClient
+        arguments:
+            - '@App\Tests\Helper\MockHttpResponseProvider'
+
+    App\Tests\Helper\MockHttpResponseProvider:
+        class: App\Tests\Helper\MockHttpResponseProvider
+
+    # Use mock HTTP client for BinanceApiClientService
+    App\Service\BinanceApiClientService:
+        arguments:
+            $httpClient: '@http_client'
+
+    App\Monitoring\TracingHttpClient:
+        alias: 'http_client'

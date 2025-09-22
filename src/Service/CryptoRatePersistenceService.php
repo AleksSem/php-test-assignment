@@ -3,9 +3,10 @@
 namespace App\Service;
 
 use App\Entity\CryptoRate;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class CryptoRatePersistenceService
+readonly class CryptoRatePersistenceService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -15,7 +16,7 @@ final readonly class CryptoRatePersistenceService
     /**
      * Saves a single rate to database
      */
-    public function saveRate(string $pair, string $rate, \DateTimeImmutable $timestamp): void
+    public function saveRate(string $pair, string $rate, DateTimeImmutable $timestamp): void
     {
         $cryptoRate = new CryptoRate();
         $cryptoRate->setPair($pair);

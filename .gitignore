@@ -18,3 +18,9 @@
 /.phpunit.cache/
 .phpunit.result.cache
 ###< phpunit/phpunit ###
+
+# Coverage reports
+/var/coverage/
+*.clover
+coverage.xml
+coverage.txt
