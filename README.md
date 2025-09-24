@@ -13,7 +13,7 @@ Symfony 7.3 REST API for tracking cryptocurrency exchange rates from Binance wit
 - EUR/BTC, EUR/ETH, EUR/LTC (configurable in `config/parameters.yaml`)
 
 ## Tech Stack
-- PHP 8.2 + Symfony 7.3 + MariaDB + Docker
+- PHP 8.4 + Symfony 7.3 + MariaDB + Docker
 
 ## Architecture
 

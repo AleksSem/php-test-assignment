@@ -56,7 +56,7 @@ class TracingHttpClient implements HttpClientInterface
         }
     }
 
-    public function stream($responses, float $timeout = null): ResponseStreamInterface
+    public function stream($responses, ?float $timeout = null): ResponseStreamInterface
     {
         return $this->httpClient->stream($responses, $timeout);
     }

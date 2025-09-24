@@ -27,7 +27,7 @@ abstract class ValidatorTestCase extends TestCase
         $this->assertGreaterThan(0, $violations->count(), $message);
     }
 
-    protected function assertViolationForProperty($violations, string $property, string $expectedMessagePart = null): void
+    protected function assertViolationForProperty($violations, string $property, ?string $expectedMessagePart = null): void
     {
         $found = false;
         foreach ($violations as $violation) {

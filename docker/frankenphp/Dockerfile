@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:php8.3-alpine as base
+FROM dunglas/frankenphp:php8.4-alpine as base
 
 # Accept version as build argument
 ARG APP_VERSION=1.0.0
@@ -19,11 +19,6 @@ RUN apk add --no-cache \
         pdo_mysql \
         intl \
         opcache
-
-
-# Create log directories
-RUN mkdir -p /var/log/caddy /var/log/php \
-    && chown -R www-data:www-data /var/log/caddy /var/log/php
 
 # PHP settings for production
 RUN printf 'opcache.enable=1\n\
@@ -94,12 +89,12 @@ RUN chown -R www-data:www-data /app \
     && chmod -R 755 /app \
     && chmod -R 775 /app/var
 
+# Create log directories
+RUN mkdir -p /var/log/caddy /var/log/php \
+    && chown -R www-data:www-data /var/log/caddy /var/log/php \
+
 # Switch to www-data user
 USER www-data
 
 # Default startup command
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1

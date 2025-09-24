@@ -78,7 +78,7 @@ class CryptoRateFixtures
 
     public static function createDayRates(
         string $pair = 'EUR/BTC',
-        DateTimeImmutable $date = null
+        ?DateTimeImmutable $date = null
     ): array {
         $date = $date ?? new DateTimeImmutable('today');
         $rates = [];
@@ -99,7 +99,7 @@ class CryptoRateFixtures
         return $rates;
     }
 
-    public static function createMultiPairRates(DateTimeImmutable $timestamp = null): array
+    public static function createMultiPairRates(?DateTimeImmutable $timestamp = null): array
     {
         $timestamp = $timestamp ?? new DateTimeImmutable();
 

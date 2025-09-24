@@ -43,7 +43,6 @@
     </source>
 
     <coverage includeUncoveredFiles="true"
-              processUncoveredFiles="true"
               ignoreDeprecatedCodeUnits="true"
               disableCodeCoverageIgnore="false">
         <report>
