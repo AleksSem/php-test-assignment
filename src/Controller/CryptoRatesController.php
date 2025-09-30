@@ -38,12 +38,11 @@ class CryptoRatesController extends AbstractController
             }
 
             $rates = $this->binanceApiService->getRatesForLast24Hours($requestDto->getPair());
-            $data = $this->transformRatesToArray($rates);
 
             return new JsonResponse([
                 'pair' => $requestDto->getPair(),
                 'chart' => $this->transformRatesToChartFormat($rates),
-                'count' => count($data)
+                'count' => count($rates)
             ]);
         } catch (\Throwable $e) {
             return $this->exceptionHandler->handleApiException($e, 'getLast24Hours');
@@ -66,28 +65,16 @@ class CryptoRatesController extends AbstractController
 
             $date = new DateTimeImmutable($requestDto->getDate());
             $rates = $this->binanceApiService->getRatesForDay($requestDto->getPair(), $date);
-            $data = $this->transformRatesToArray($rates);
 
             return new JsonResponse([
                 'pair' => $requestDto->getPair(),
                 'date' => $date->format('Y-m-d'),
                 'chart' => $this->transformRatesToChartFormat($rates, 'day'),
-                'count' => count($data)
+                'count' => count($rates)
             ]);
         } catch (\Throwable $e) {
             return $this->exceptionHandler->handleApiException($e, 'getDay');
         }
-    }
-
-    private function transformRatesToArray(array $rates): array
-    {
-        return array_map(function($rate) {
-            return [
-                'timestamp' => $rate->getTimestamp()->format('Y-m-d H:i:s'),
-                'rate' => $rate->getRate(),
-                'pair' => $rate->getPair()
-            ];
-        }, $rates);
     }
 
     private function transformRatesToChartFormat(array $rates, string $type = '24h'): array
